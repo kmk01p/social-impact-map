@@ -350,104 +350,219 @@ app.get('/', (c) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>소셜 임팩트 맵 - 봉사 리워드 플랫폼</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                  primary: {
+                    50: '#f0f9ff',
+                    500: '#0ea5e9',
+                    600: '#0284c7',
+                    700: '#0369a1',
+                    900: '#0c4a6e'
+                  },
+                  luxury: {
+                    gold: '#d4af37',
+                    rose: '#ff6b9d',
+                    purple: '#7c3aed',
+                    emerald: '#10b981'
+                  }
+                },
+                fontFamily: {
+                  'luxury': ['Inter', 'system-ui', 'sans-serif']
+                },
+                boxShadow: {
+                  'luxury': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                  'glow': '0 0 30px rgba(16, 185, 129, 0.3)'
+                },
+                backdropBlur: {
+                  xs: '2px'
+                }
+              }
+            }
+          }
+        </script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <link href="/static/style.css" rel="stylesheet">
     </head>
-    <body class="bg-gray-100">
+    <body class="luxury-bg font-luxury min-h-screen">
+        <!-- 배경 장식 -->
+        <div class="fixed inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-luxury-purple/20 to-luxury-rose/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-luxury-emerald/20 to-primary-500/20 rounded-full blur-3xl"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-luxury-gold/10 to-luxury-purple/10 rounded-full blur-3xl"></div>
+        </div>
+
         <!-- 네비게이션 -->
-        <nav class="bg-blue-600 text-white p-4 shadow-lg">
-            <div class="container mx-auto flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-heart text-red-400 text-2xl"></i>
-                    <h1 class="text-xl font-bold">소셜 임팩트 맵</h1>
-                </div>
-                <div class="flex space-x-4">
-                    <button id="mapTab" class="px-4 py-2 rounded bg-blue-500 hover:bg-blue-400 transition-colors">
-                        <i class="fas fa-map-marked-alt mr-2"></i>지도
-                    </button>
-                    <button id="activitiesTab" class="px-4 py-2 rounded hover:bg-blue-500 transition-colors">
-                        <i class="fas fa-hands-helping mr-2"></i>활동기록
-                    </button>
-                    <button id="badgesTab" class="px-4 py-2 rounded hover:bg-blue-500 transition-colors">
-                        <i class="fas fa-medal mr-2"></i>뱃지
-                    </button>
-                    <button id="profileTab" class="px-4 py-2 rounded hover:bg-blue-500 transition-colors">
-                        <i class="fas fa-user mr-2"></i>프로필
-                    </button>
+        <nav class="luxury-nav relative z-50">
+            <div class="max-w-7xl mx-auto px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="luxury-logo-container">
+                            <div class="w-12 h-12 bg-gradient-to-br from-luxury-gold to-luxury-rose rounded-xl flex items-center justify-center shadow-luxury">
+                                <i class="fas fa-heart text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold bg-gradient-to-r from-luxury-gold to-luxury-rose bg-clip-text text-transparent">
+                                소셜 임팩트 맵
+                            </h1>
+                            <p class="text-sm text-gray-400 font-light">봉사의 가치를 세상에</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="mapTab" class="luxury-nav-btn luxury-nav-active">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <span>지도</span>
+                        </button>
+                        <button id="activitiesTab" class="luxury-nav-btn">
+                            <i class="fas fa-hands-helping"></i>
+                            <span>활동기록</span>
+                        </button>
+                        <button id="badgesTab" class="luxury-nav-btn">
+                            <i class="fas fa-medal"></i>
+                            <span>뱃지</span>
+                        </button>
+                        <button id="profileTab" class="luxury-nav-btn">
+                            <i class="fas fa-user-circle"></i>
+                            <span>프로필</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </nav>
 
         <!-- 메인 컨테이너 -->
-        <div class="container mx-auto p-4">
+        <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-8">
             <!-- 대시보드 통계 -->
-            <div id="statsSection" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <div class="flex items-center">
-                        <i class="fas fa-users text-blue-500 text-2xl mr-3"></i>
+            <div id="statsSection" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="luxury-stat-card group">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-sm text-gray-500">총 참가자</div>
-                            <div id="totalUsers" class="text-2xl font-bold">-</div>
+                            <div class="text-sm font-medium text-gray-400 mb-1">총 참가자</div>
+                            <div id="totalUsers" class="text-3xl font-bold text-white mb-2">-</div>
+                            <div class="flex items-center text-luxury-emerald text-sm">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span>+12% 이번 달</span>
+                            </div>
+                        </div>
+                        <div class="luxury-stat-icon bg-gradient-to-br from-primary-500 to-primary-600">
+                            <i class="fas fa-users text-white text-xl"></i>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <div class="flex items-center">
-                        <i class="fas fa-hands-helping text-green-500 text-2xl mr-3"></i>
+
+                <div class="luxury-stat-card group">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-sm text-gray-500">총 활동</div>
-                            <div id="totalActivities" class="text-2xl font-bold">-</div>
+                            <div class="text-sm font-medium text-gray-400 mb-1">총 활동</div>
+                            <div id="totalActivities" class="text-3xl font-bold text-white mb-2">-</div>
+                            <div class="flex items-center text-luxury-emerald text-sm">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span>+8% 이번 주</span>
+                            </div>
+                        </div>
+                        <div class="luxury-stat-icon bg-gradient-to-br from-luxury-emerald to-green-600">
+                            <i class="fas fa-hands-helping text-white text-xl"></i>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <div class="flex items-center">
-                        <i class="fas fa-clock text-orange-500 text-2xl mr-3"></i>
+
+                <div class="luxury-stat-card group">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-sm text-gray-500">총 봉사시간</div>
-                            <div id="totalHours" class="text-2xl font-bold">-</div>
+                            <div class="text-sm font-medium text-gray-400 mb-1">총 봉사시간</div>
+                            <div id="totalHours" class="text-3xl font-bold text-white mb-2">-</div>
+                            <div class="flex items-center text-luxury-emerald text-sm">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span>+15% 이번 달</span>
+                            </div>
+                        </div>
+                        <div class="luxury-stat-icon bg-gradient-to-br from-orange-500 to-red-500">
+                            <i class="fas fa-clock text-white text-xl"></i>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <div class="flex items-center">
-                        <i class="fas fa-medal text-purple-500 text-2xl mr-3"></i>
+
+                <div class="luxury-stat-card group">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-sm text-gray-500">획득 뱃지</div>
-                            <div id="totalBadges" class="text-2xl font-bold">-</div>
+                            <div class="text-sm font-medium text-gray-400 mb-1">획득 뱃지</div>
+                            <div id="totalBadges" class="text-3xl font-bold text-white mb-2">-</div>
+                            <div class="flex items-center text-luxury-gold text-sm">
+                                <i class="fas fa-star mr-1"></i>
+                                <span>새로운 성취</span>
+                            </div>
+                        </div>
+                        <div class="luxury-stat-icon bg-gradient-to-br from-luxury-purple to-purple-600">
+                            <i class="fas fa-medal text-white text-xl"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- 지도 섹션 -->
-            <div id="mapSection" class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-map-marked-alt text-blue-500 mr-2"></i>
-                    봉사활동 지도
-                </h2>
-                <div id="map" class="h-96 rounded-lg border"></div>
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <button id="showAll" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">전체</button>
-                    <button id="showEnvironment" class="px-3 py-1 bg-green-500 text-white rounded text-sm">환경보호</button>
-                    <button id="showEducation" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">교육</button>
-                    <button id="showWelfare" class="px-3 py-1 bg-purple-500 text-white rounded text-sm">복지</button>
-                    <button id="showCulture" class="px-3 py-1 bg-pink-500 text-white rounded text-sm">문화예술</button>
+            <div id="mapSection" class="luxury-card mb-8">
+                <div class="luxury-card-header">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-map-marked-alt text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">봉사활동 지도</h2>
+                            <p class="text-gray-400 text-sm">전국 봉사활동 현황을 한눈에</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="flex items-center text-luxury-emerald text-sm">
+                            <div class="w-2 h-2 bg-luxury-emerald rounded-full mr-2 animate-pulse"></div>
+                            실시간 업데이트
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="luxury-map-container">
+                    <div id="map" class="w-full h-96 rounded-2xl overflow-hidden"></div>
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <button id="showAll" class="luxury-filter-btn luxury-filter-active">
+                        <i class="fas fa-globe-asia mr-2"></i>전체
+                    </button>
+                    <button id="showEnvironment" class="luxury-filter-btn" data-category="환경보호">
+                        <i class="fas fa-leaf mr-2"></i>환경보호
+                    </button>
+                    <button id="showEducation" class="luxury-filter-btn" data-category="교육">
+                        <i class="fas fa-graduation-cap mr-2"></i>교육
+                    </button>
+                    <button id="showWelfare" class="luxury-filter-btn" data-category="복지">
+                        <i class="fas fa-heart mr-2"></i>복지
+                    </button>
+                    <button id="showCulture" class="luxury-filter-btn" data-category="문화예술">
+                        <i class="fas fa-palette mr-2"></i>문화예술
+                    </button>
                 </div>
             </div>
 
             <!-- 활동기록 섹션 -->
-            <div id="activitiesSection" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold flex items-center">
-                        <i class="fas fa-hands-helping text-green-500 mr-2"></i>
-                        봉사활동 기록
-                    </h2>
-                    <button id="addActivityBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+            <div id="activitiesSection" class="luxury-card mb-8 hidden">
+                <div class="luxury-card-header">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-luxury-emerald to-green-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-hands-helping text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">봉사활동 기록</h2>
+                            <p class="text-gray-400 text-sm">나의 봉사활동 여정</p>
+                        </div>
+                    </div>
+                    <button id="addActivityBtn" class="luxury-btn-primary">
                         <i class="fas fa-plus mr-2"></i>활동 추가
                     </button>
                 </div>
@@ -457,22 +572,36 @@ app.get('/', (c) => {
             </div>
 
             <!-- 뱃지 섹션 -->
-            <div id="badgesSection" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-medal text-purple-500 mr-2"></i>
-                    뱃지 컬렉션
-                </h2>
-                <div id="badgesList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div id="badgesSection" class="luxury-card mb-8 hidden">
+                <div class="luxury-card-header">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-luxury-gold to-yellow-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-medal text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">뱃지 컬렉션</h2>
+                            <p class="text-gray-400 text-sm">나의 성취와 기록</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="badgesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <!-- 뱃지 목록이 여기에 표시됩니다 -->
                 </div>
             </div>
 
             <!-- 프로필 섹션 -->
-            <div id="profileSection" class="bg-white rounded-lg shadow-lg p-6 hidden">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-user text-indigo-500 mr-2"></i>
-                    내 프로필
-                </h2>
+            <div id="profileSection" class="luxury-card hidden">
+                <div class="luxury-card-header">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-luxury-purple to-purple-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-user-circle text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">내 프로필</h2>
+                            <p class="text-gray-400 text-sm">개인 통계 및 성과</p>
+                        </div>
+                    </div>
+                </div>
                 <div id="profileContent">
                     <!-- 프로필 내용이 여기에 표시됩니다 -->
                 </div>
@@ -480,45 +609,66 @@ app.get('/', (c) => {
         </div>
 
         <!-- 활동 추가 모달 -->
-        <div id="addActivityModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                <h3 class="text-xl font-bold mb-4">새 봉사활동 추가</h3>
-                <form id="addActivityForm">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">활동 제목</label>
-                        <input type="text" id="activityTitle" class="w-full border rounded px-3 py-2" required>
+        <div id="addActivityModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+            <div class="luxury-modal animate-modal-in">
+                <div class="luxury-modal-header">
+                    <h3 class="text-xl font-bold text-white flex items-center">
+                        <i class="fas fa-plus-circle mr-3 text-luxury-emerald"></i>
+                        새 봉사활동 추가
+                    </h3>
+                    <button id="closeModalBtn" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="addActivityForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="luxury-input-group">
+                            <label class="luxury-label">활동 제목</label>
+                            <input type="text" id="activityTitle" class="luxury-input" placeholder="예: 한강 환경정화 활동" required>
+                        </div>
+                        <div class="luxury-input-group">
+                            <label class="luxury-label">카테고리</label>
+                            <select id="activityCategory" class="luxury-input" required>
+                                <option value="">카테고리 선택</option>
+                                <option value="환경보호">🌱 환경보호</option>
+                                <option value="교육">📚 교육</option>
+                                <option value="복지">❤️ 복지</option>
+                                <option value="문화예술">🎨 문화예술</option>
+                                <option value="의료">🏥 의료</option>
+                                <option value="재해구호">🆘 재해구호</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">카테고리</label>
-                        <select id="activityCategory" class="w-full border rounded px-3 py-2" required>
-                            <option value="">선택하세요</option>
-                            <option value="환경보호">환경보호</option>
-                            <option value="교육">교육</option>
-                            <option value="복지">복지</option>
-                            <option value="문화예술">문화예술</option>
-                            <option value="의료">의료</option>
-                            <option value="재해구호">재해구호</option>
-                        </select>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="luxury-input-group">
+                            <label class="luxury-label">활동 날짜</label>
+                            <input type="date" id="activityDate" class="luxury-input" required>
+                        </div>
+                        <div class="luxury-input-group">
+                            <label class="luxury-label">봉사 시간</label>
+                            <input type="number" id="activityHours" class="luxury-input" step="0.5" min="0" placeholder="0.0" required>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">활동 날짜</label>
-                        <input type="date" id="activityDate" class="w-full border rounded px-3 py-2" required>
+                    
+                    <div class="luxury-input-group">
+                        <label class="luxury-label">활동 장소</label>
+                        <input type="text" id="activityLocation" class="luxury-input" placeholder="예: 서울시 마포구 한강공원" required>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">봉사 시간</label>
-                        <input type="number" id="activityHours" class="w-full border rounded px-3 py-2" step="0.5" min="0" required>
+                    
+                    <div class="luxury-input-group">
+                        <label class="luxury-label">활동 설명</label>
+                        <textarea id="activityDescription" class="luxury-textarea" rows="4" placeholder="봉사활동에 대한 상세한 설명을 입력해주세요..."></textarea>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">장소</label>
-                        <input type="text" id="activityLocation" class="w-full border rounded px-3 py-2" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">설명</label>
-                        <textarea id="activityDescription" class="w-full border rounded px-3 py-2 h-20"></textarea>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">추가</button>
-                        <button type="button" id="cancelAddActivity" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400">취소</button>
+                    
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" class="luxury-btn-primary flex-1">
+                            <i class="fas fa-check mr-2"></i>활동 등록
+                        </button>
+                        <button type="button" id="cancelAddActivity" class="luxury-btn-secondary flex-1">
+                            <i class="fas fa-times mr-2"></i>취소
+                        </button>
                     </div>
                 </form>
             </div>

@@ -203,10 +203,10 @@ function filterActivities(category) {
     });
     
     // 버튼 스타일 업데이트
-    document.querySelectorAll('[id^="show"]').forEach(btn => {
-        btn.classList.remove('ring-2', 'ring-blue-300');
+    document.querySelectorAll('.luxury-filter-btn').forEach(btn => {
+        btn.classList.remove('luxury-filter-active');
     });
-    event.target.classList.add('ring-2', 'ring-blue-300');
+    event.target.classList.add('luxury-filter-active');
 }
 
 // 탭 네비게이션 설정
@@ -220,21 +220,21 @@ function setupTabNavigation() {
 function switchTab(activeTab) {
     // 모든 탭 버튼 비활성화
     Object.values(tabs).forEach(tab => {
-        tab.classList.remove('bg-blue-500');
-        tab.classList.add('hover:bg-blue-500');
+        tab.classList.remove('luxury-nav-active');
     });
     
     // 활성 탭 버튼 스타일링
-    tabs[activeTab].classList.add('bg-blue-500');
-    tabs[activeTab].classList.remove('hover:bg-blue-500');
+    tabs[activeTab].classList.add('luxury-nav-active');
     
     // 모든 섹션 숨기기
-    Object.values(sections).forEach(section => {
+    Object.values(sections).forEach((section, index) => {
         section.classList.add('hidden');
+        section.style.animation = '';
     });
     
-    // 활성 섹션 표시
+    // 활성 섹션 표시 (애니메이션 효과)
     sections[activeTab].classList.remove('hidden');
+    sections[activeTab].classList.add('fade-in');
     
     // 지도 탭일 때 지도 크기 재조정
     if (activeTab === 'map') {
@@ -261,28 +261,63 @@ function displayActivities(activities) {
     const container = document.getElementById('activitiesList');
     
     if (activities.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-8">등록된 봉사활동이 없습니다.</p>';
+        container.innerHTML = `
+            <div class="text-center py-16">
+                <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center">
+                    <i class="fas fa-clipboard-list text-3xl text-gray-300"></i>
+                </div>
+                <p class="text-gray-400 text-lg">아직 등록된 봉사활동이 없습니다</p>
+                <p class="text-gray-500 text-sm mt-2">첫 번째 봉사활동을 추가해보세요!</p>
+            </div>
+        `;
         return;
     }
     
-    container.innerHTML = activities.map(activity => `
-        <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+    container.innerHTML = activities.map((activity, index) => `
+        <div class="luxury-activity-card slide-in" style="animation-delay: ${index * 0.1}s">
             <div class="flex justify-between items-start">
                 <div class="flex-1">
-                    <h3 class="font-semibold text-lg">${activity.title}</h3>
-                    <p class="text-gray-600 text-sm mb-2">${activity.description || ''}</p>
-                    <div class="flex flex-wrap gap-2 text-sm">
-                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">${activity.category}</span>
-                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded">${activity.hours}시간</span>
-                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded">${activity.activity_date}</span>
-                        <span class="px-2 py-1 ${getStatusColor(activity.verification_status)} rounded">${getStatusText(activity.verification_status)}</span>
+                    <div class="flex items-center mb-3">
+                        <div class="w-12 h-12 bg-gradient-to-br ${getCategoryGradient(activity.category)} rounded-xl flex items-center justify-center mr-4">
+                            <i class="${getCategoryIcon(activity.category)} text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-white">${activity.title}</h3>
+                            <p class="text-gray-400 text-sm">${activity.activity_date}</p>
+                        </div>
                     </div>
-                    ${activity.location_name ? `<p class="text-gray-500 text-sm mt-1"><i class="fas fa-map-marker-alt mr-1"></i>${activity.location_name}</p>` : ''}
-                    ${activity.organization_name ? `<p class="text-gray-500 text-sm"><i class="fas fa-building mr-1"></i>${activity.organization_name}</p>` : ''}
+                    
+                    ${activity.description ? `<p class="text-gray-300 text-sm mb-3 leading-relaxed">${activity.description}</p>` : ''}
+                    
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="status-badge ${getStatusClass(activity.verification_status)}">${getStatusText(activity.verification_status)}</span>
+                        <span class="px-3 py-1 bg-gradient-to-r from-luxury-emerald/20 to-green-600/20 text-luxury-emerald rounded-full text-sm font-medium border border-luxury-emerald/30">
+                            <i class="fas fa-clock mr-1"></i>${activity.hours}시간
+                        </span>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        ${activity.location_name ? `
+                            <div class="flex items-center text-gray-400 text-sm">
+                                <i class="fas fa-map-marker-alt mr-2 w-4"></i>
+                                <span>${activity.location_name}</span>
+                            </div>
+                        ` : ''}
+                        ${activity.organization_name ? `
+                            <div class="flex items-center text-gray-400 text-sm">
+                                <i class="fas fa-building mr-2 w-4"></i>
+                                <span>${activity.organization_name}</span>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
-                <div class="ml-4">
-                    <button onclick="viewActivityDetail(${activity.id})" class="text-blue-500 hover:text-blue-700">
+                
+                <div class="ml-4 flex flex-col space-y-2">
+                    <button onclick="viewActivityDetail(${activity.id})" class="p-3 bg-rgba(255,255,255,0.05) hover:bg-rgba(255,255,255,0.1) rounded-lg text-gray-400 hover:text-white transition-all duration-200 hover:scale-110">
                         <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="editActivity(${activity.id})" class="p-3 bg-rgba(255,255,255,0.05) hover:bg-rgba(255,255,255,0.1) rounded-lg text-gray-400 hover:text-luxury-gold transition-all duration-200 hover:scale-110">
+                        <i class="fas fa-edit"></i>
                     </button>
                 </div>
             </div>
@@ -290,23 +325,49 @@ function displayActivities(activities) {
     `).join('');
 }
 
-// 인증 상태 색상
-function getStatusColor(status) {
+// 인증 상태 클래스
+function getStatusClass(status) {
     switch (status) {
-        case 'verified': return 'bg-green-100 text-green-800';
-        case 'pending': return 'bg-yellow-100 text-yellow-800';
-        case 'rejected': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
+        case 'verified': return 'status-verified';
+        case 'pending': return 'status-pending';
+        case 'rejected': return 'status-rejected';
+        default: return 'status-pending';
     }
 }
 
 // 인증 상태 텍스트
 function getStatusText(status) {
     switch (status) {
-        case 'verified': return '인증완료';
-        case 'pending': return '인증대기';
-        case 'rejected': return '인증거부';
-        default: return '미확인';
+        case 'verified': return '✓ 인증완료';
+        case 'pending': return '⏳ 인증대기';
+        case 'rejected': return '✗ 인증거부';
+        default: return '? 미확인';
+    }
+}
+
+// 카테고리별 그라데이션
+function getCategoryGradient(category) {
+    switch (category) {
+        case '환경보호': return 'from-green-500 to-emerald-600';
+        case '교육': return 'from-blue-500 to-indigo-600';
+        case '복지': return 'from-purple-500 to-violet-600';
+        case '문화예술': return 'from-pink-500 to-rose-600';
+        case '의료': return 'from-red-500 to-pink-600';
+        case '재해구호': return 'from-orange-500 to-red-600';
+        default: return 'from-gray-500 to-gray-600';
+    }
+}
+
+// 카테고리별 아이콘
+function getCategoryIcon(category) {
+    switch (category) {
+        case '환경보호': return 'fas fa-leaf';
+        case '교육': return 'fas fa-graduation-cap';
+        case '복지': return 'fas fa-heart';
+        case '문화예술': return 'fas fa-palette';
+        case '의료': return 'fas fa-stethoscope';
+        case '재해구호': return 'fas fa-hands-helping';
+        default: return 'fas fa-hand-heart';
     }
 }
 
@@ -315,17 +376,42 @@ function setupActivityModal() {
     const modal = document.getElementById('addActivityModal');
     const addBtn = document.getElementById('addActivityBtn');
     const cancelBtn = document.getElementById('cancelAddActivity');
+    const closeBtn = document.getElementById('closeModalBtn');
     const form = document.getElementById('addActivityForm');
     
-    addBtn.addEventListener('click', () => {
+    function openModal() {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-    });
+        document.body.style.overflow = 'hidden';
+        
+        // 오늘 날짜를 기본값으로 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('activityDate').value = today;
+    }
     
-    cancelBtn.addEventListener('click', () => {
+    function closeModal() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        document.body.style.overflow = '';
         form.reset();
+    }
+    
+    addBtn.addEventListener('click', openModal);
+    cancelBtn.addEventListener('click', closeModal);
+    closeBtn.addEventListener('click', closeModal);
+    
+    // 모달 배경 클릭시 닫기
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+        }
     });
     
     form.addEventListener('submit', handleAddActivity);
@@ -390,21 +476,59 @@ async function loadBadges() {
 function displayBadges(badges, earnedBadgeIds) {
     const container = document.getElementById('badgesList');
     
-    container.innerHTML = badges.map(badge => {
+    container.innerHTML = badges.map((badge, index) => {
         const isEarned = earnedBadgeIds.includes(badge.id);
         
         return `
-            <div class="p-4 border rounded-lg text-center ${isEarned ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}">
-                <div class="text-3xl mb-2">${isEarned ? '🏆' : '🔒'}</div>
-                <h3 class="font-semibold ${isEarned ? 'text-yellow-800' : 'text-gray-500'}">${badge.name}</h3>
-                <p class="text-sm ${isEarned ? 'text-yellow-600' : 'text-gray-400'} mt-1">${badge.description}</p>
-                <p class="text-xs ${isEarned ? 'text-yellow-500' : 'text-gray-400'} mt-2">
-                    ${getRequirementText(badge.requirement_type, badge.requirement_value)}
+            <div class="luxury-badge-card ${isEarned ? 'earned' : ''} fade-in" style="animation-delay: ${index * 0.1}s">
+                <div class="luxury-badge-icon">
+                    ${isEarned ? getBadgeIcon(badge.name) : '🔒'}
+                </div>
+                
+                <h3 class="font-bold text-lg mb-2 ${isEarned ? 'text-luxury-gold' : 'text-gray-500'}">
+                    ${badge.name}
+                </h3>
+                
+                <p class="text-sm ${isEarned ? 'text-gray-300' : 'text-gray-500'} mb-4 leading-relaxed">
+                    ${badge.description}
                 </p>
-                ${isEarned ? '<p class="text-xs text-green-600 mt-1">✅ 획득완료</p>' : '<p class="text-xs text-gray-400 mt-1">미획득</p>'}
+                
+                <div class="mb-4">
+                    <div class="text-xs font-medium ${isEarned ? 'text-luxury-rose' : 'text-gray-600'} mb-1">
+                        달성 조건
+                    </div>
+                    <div class="text-sm ${isEarned ? 'text-white' : 'text-gray-400'}">
+                        ${getRequirementText(badge.requirement_type, badge.requirement_value)}
+                    </div>
+                </div>
+                
+                ${isEarned ? `
+                    <div class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-luxury-emerald/20 to-green-600/20 text-luxury-emerald rounded-full text-xs font-bold border border-luxury-emerald/30">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        획득완료
+                    </div>
+                ` : `
+                    <div class="inline-flex items-center px-3 py-1 bg-gray-800/50 text-gray-400 rounded-full text-xs border border-gray-600/50">
+                        <i class="fas fa-lock mr-1"></i>
+                        미획득
+                    </div>
+                `}
             </div>
         `;
     }).join('');
+}
+
+// 뱃지별 아이콘
+function getBadgeIcon(badgeName) {
+    switch (badgeName) {
+        case '첫 걸음': return '🥇';
+        case '열정가': return '🔥';
+        case '헌신자': return '👑';
+        case '환경지킴이': return '🌱';
+        case '교육봉사자': return '📚';
+        case '지역사랑': return '🗺️';
+        default: return '🏆';
+    }
 }
 
 // 뱃지 요구사항 텍스트
@@ -434,49 +558,106 @@ async function loadUserProfile() {
 function displayUserProfile(user, badges) {
     const container = document.getElementById('profileContent');
     
+    const progressToNextLevel = (user.experience_points % 100);
+    const nextLevelXP = (user.level * 100);
+    
     container.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- 기본 정보 -->
-            <div class="space-y-4">
-                <div class="flex items-center space-x-4">
-                    <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                        ${user.name.charAt(0)}
+            <div class="space-y-6">
+                <!-- 프로필 헤더 -->
+                <div class="luxury-card">
+                    <div class="flex items-center space-x-6">
+                        <div class="relative">
+                            <div class="w-24 h-24 bg-gradient-to-br from-luxury-gold to-luxury-rose rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-luxury">
+                                ${user.name.charAt(0)}
+                            </div>
+                            <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-luxury-emerald to-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-gray-900">
+                                ${user.level}
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-white mb-1">${user.name}</h3>
+                            <p class="text-gray-400 mb-2">${user.email}</p>
+                            <div class="flex items-center space-x-3">
+                                <span class="px-3 py-1 bg-gradient-to-r from-luxury-purple/20 to-violet-600/20 text-luxury-purple rounded-full text-sm font-medium border border-luxury-purple/30">
+                                    <i class="fas fa-star mr-1"></i>레벨 ${user.level}
+                                </span>
+                                <span class="text-sm text-gray-400">${user.experience_points} XP</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-2xl font-bold">${user.name}</h3>
-                        <p class="text-gray-600">${user.email}</p>
-                        <p class="text-sm text-blue-600 font-medium">레벨 ${user.level} (${user.experience_points} XP)</p>
+                    
+                    <!-- 경험치 진행률 -->
+                    <div class="mt-6">
+                        <div class="flex justify-between text-sm text-gray-400 mb-2">
+                            <span>다음 레벨까지</span>
+                            <span>${progressToNextLevel}/100 XP</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-luxury-gold to-luxury-rose h-2 rounded-full transition-all duration-500" 
+                                 style="width: ${progressToNextLevel}%"></div>
+                        </div>
                     </div>
                 </div>
                 
+                <!-- 통계 카드들 -->
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-blue-50 p-4 rounded-lg text-center">
-                        <div class="text-2xl font-bold text-blue-600">${user.total_hours || 0}</div>
-                        <div class="text-sm text-blue-500">총 봉사시간</div>
+                    <div class="luxury-stat-card">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-luxury-emerald to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-clock text-white text-xl"></i>
+                            </div>
+                            <div class="text-3xl font-bold text-white mb-1">${user.total_hours || 0}</div>
+                            <div class="text-sm text-gray-400">총 봉사시간</div>
+                        </div>
                     </div>
-                    <div class="bg-green-50 p-4 rounded-lg text-center">
-                        <div class="text-2xl font-bold text-green-600">${user.total_activities || 0}</div>
-                        <div class="text-sm text-green-500">총 활동수</div>
+                    
+                    <div class="luxury-stat-card">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-hands-helping text-white text-xl"></i>
+                            </div>
+                            <div class="text-3xl font-bold text-white mb-1">${user.total_activities || 0}</div>
+                            <div class="text-sm text-gray-400">총 활동수</div>
+                        </div>
                     </div>
                 </div>
                 
-                <button onclick="generateCertificate()" class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <!-- 인증서 발급 버튼 -->
+                <button onclick="generateCertificate()" class="luxury-btn-primary w-full">
                     <i class="fas fa-certificate mr-2"></i>
                     봉사활동 인증서 발급
                 </button>
             </div>
             
             <!-- 획득한 뱃지 -->
-            <div>
-                <h4 class="text-xl font-bold mb-4">획득한 뱃지 (${badges.length}개)</h4>
-                <div class="grid grid-cols-3 gap-3">
-                    ${badges.length > 0 ? badges.map(badge => `
-                        <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                            <div class="text-2xl mb-1">🏆</div>
-                            <div class="text-xs font-medium text-yellow-800">${badge.name}</div>
-                            <div class="text-xs text-yellow-600">${new Date(badge.earned_at).toLocaleDateString()}</div>
+            <div class="luxury-card">
+                <div class="flex items-center justify-between mb-6">
+                    <h4 class="text-xl font-bold text-white">획득한 뱃지</h4>
+                    <span class="px-3 py-1 bg-gradient-to-r from-luxury-gold/20 to-yellow-600/20 text-luxury-gold rounded-full text-sm font-bold border border-luxury-gold/30">
+                        ${badges.length}개
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    ${badges.length > 0 ? badges.map((badge, index) => `
+                        <div class="luxury-badge-card earned fade-in" style="animation-delay: ${index * 0.1}s">
+                            <div class="text-2xl mb-2">${getBadgeIcon(badge.name)}</div>
+                            <div class="text-sm font-bold text-luxury-gold mb-1">${badge.name}</div>
+                            <div class="text-xs text-gray-400">
+                                ${new Date(badge.earned_at).toLocaleDateString('ko-KR')}
+                            </div>
                         </div>
-                    `).join('') : '<p class="text-gray-500 text-sm col-span-3 text-center py-4">아직 획득한 뱃지가 없습니다.</p>'}
+                    `).join('') : `
+                        <div class="col-span-2 sm:col-span-3 text-center py-8">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-full flex items-center justify-center">
+                                <i class="fas fa-medal text-2xl text-gray-500"></i>
+                            </div>
+                            <p class="text-gray-400">아직 획득한 뱃지가 없습니다</p>
+                            <p class="text-gray-500 text-sm mt-1">봉사활동을 통해 뱃지를 획득해보세요!</p>
+                        </div>
+                    `}
                 </div>
             </div>
         </div>
@@ -520,21 +701,114 @@ async function generateCertificate() {
 // 알림 표시
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        type === 'success' ? 'bg-green-500 text-white' :
-        type === 'error' ? 'bg-red-500 text-white' :
-        'bg-blue-500 text-white'
-    }`;
-    notification.textContent = message;
+    
+    const iconMap = {
+        success: 'fas fa-check-circle',
+        error: 'fas fa-exclamation-circle',
+        info: 'fas fa-info-circle',
+        warning: 'fas fa-exclamation-triangle'
+    };
+    
+    const colorMap = {
+        success: 'from-luxury-emerald to-green-600',
+        error: 'from-red-500 to-red-600',
+        info: 'from-primary-500 to-primary-600',
+        warning: 'from-orange-500 to-orange-600'
+    };
+    
+    notification.className = `
+        fixed top-6 right-6 p-4 rounded-2xl shadow-luxury z-50 
+        bg-gradient-to-r ${colorMap[type]} text-white
+        backdrop-filter backdrop-blur-lg border border-white/20
+        transform translate-x-full transition-all duration-500 ease-out
+        max-w-sm
+    `;
+    
+    notification.innerHTML = `
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <i class="${iconMap[type]} text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <p class="font-medium text-sm leading-relaxed">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 ml-2 text-white/80 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
     
     document.body.appendChild(notification);
     
+    // 애니메이션 효과
+    requestAnimationFrame(() => {
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('translate-x-0');
+    });
+    
+    // 자동 제거
     setTimeout(() => {
-        notification.remove();
-    }, 3000);
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 500);
+    }, 4000);
 }
 
-// 활동 상세보기 (향후 구현)
+// 활동 상세보기
 function viewActivityDetail(activityId) {
-    showNotification('활동 상세보기 기능은 향후 구현됩니다.', 'info');
+    showNotification('활동 상세보기를 준비 중입니다...', 'info');
+}
+
+// 활동 편집
+function editActivity(activityId) {
+    showNotification('활동 편집 기능을 준비 중입니다...', 'info');
+}
+
+// 통계 카운터 애니메이션
+function animateCounter(element, targetValue, duration = 1000) {
+    const startValue = 0;
+    const startTime = Date.now();
+    
+    function updateCounter() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // easeOutCubic 함수
+        const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOutCubic(progress));
+        
+        if (element.id === 'totalHours') {
+            element.textContent = currentValue + 'h';
+        } else {
+            element.textContent = currentValue;
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+        }
+    }
+    
+    updateCounter();
+}
+
+// 통계 업데이트 시 애니메이션 적용
+const originalLoadStats = loadStats;
+loadStats = async function() {
+    try {
+        const response = await axios.get('/api/stats');
+        const stats = response.data.stats;
+        
+        // 애니메이션과 함께 업데이트
+        setTimeout(() => animateCounter(document.getElementById('totalUsers'), stats.totalUsers), 100);
+        setTimeout(() => animateCounter(document.getElementById('totalActivities'), stats.totalActivities), 200);
+        setTimeout(() => animateCounter(document.getElementById('totalHours'), stats.totalHours), 300);
+        
+        // 뱃지 수는 나중에 사용자별로 계산
+        document.getElementById('totalBadges').textContent = '-';
+    } catch (error) {
+        console.error('통계 로딩 실패:', error);
+    }
 }
