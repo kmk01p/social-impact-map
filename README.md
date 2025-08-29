@@ -1,21 +1,137 @@
-```txt
-npm install
-npm run dev
-```
+# 소셜 임팩트 맵 (Social Impact Map)
 
-```txt
-npm run deploy
-```
+## 프로젝트 개요
+- **이름**: 소셜 임팩트 맵 - 봉사 리워드 플랫폼
+- **목표**: 봉사활동을 지도에 기록하고 뱃지/레벨 시스템을 통해 참여를 독려하는 소셜 임팩트 플랫폼
+- **주요 기능**: 
+  - 📍 지도 기반 봉사활동 기록
+  - 🏆 뱃지/레벨업 시스템
+  - 📜 봉사활동 인증서 PDF 출력
+  - 📊 통계 및 진행률 추적
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+## 현재 구현 완료 기능
 
-```txt
-npm run cf-typegen
-```
+### ✅ 핵심 기능
+1. **소셜 임팩트 지도**
+   - Leaflet.js를 사용한 인터랙티브 지도
+   - 봉사활동 위치 마커 표시
+   - 카테고리별 필터링 (환경보호, 교육, 복지, 문화예술 등)
+   - 기관 위치 표시 및 정보
 
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
+2. **봉사활동 관리**
+   - 활동 등록 및 수정
+   - 활동 인증 상태 관리 (대기/승인/거부)
+   - 카테고리별 분류
+   - 시간 및 위치 기록
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
-```
+3. **뱃지/레벨 시스템**
+   - 6가지 뱃지 타입 (첫 걸음, 열정가, 헌신자, 환경지킴이, 교육봉사자, 지역사랑)
+   - 자동 뱃지 획득 조건 확인
+   - 레벨 및 경험치 시스템
+   - 사용자별 뱃지 컬렉션
+
+4. **PDF 인증서 생성**
+   - jsPDF를 사용한 클라이언트 사이드 PDF 생성
+   - 개인별 봉사활동 통계 포함
+   - 다운로드 가능한 공식 인증서
+
+### 🎯 API 엔드포인트
+- `GET /api/users` - 사용자 목록 조회
+- `GET /api/users/:id` - 사용자 상세 정보
+- `GET /api/activities` - 봉사활동 목록 조회
+- `POST /api/activities` - 새 봉사활동 등록
+- `PUT /api/activities/:id/verify` - 활동 인증 상태 변경
+- `GET /api/organizations` - 기관 목록 조회
+- `GET /api/badges` - 뱃지 목록 조회
+- `GET /api/stats` - 전체 통계 조회
+- `GET /api/map-data` - 지도 데이터 조회
+- `GET /api/certificate/:userId` - 인증서 데이터 조회
+
+## 데이터 아키텍처
+- **데이터 모델**: 사용자, 봉사활동, 기관, 뱃지, 활동 사진
+- **저장소 서비스**: Cloudflare D1 SQLite 데이터베이스
+- **데이터 플로우**: REST API → D1 Database → JSON Response
+
+## URLs
+- **로컬 개발**: http://localhost:3000
+- **샌드박스**: https://3000-i1u13zbsnhi7dkkqi0lr7.e2b.dev
+- **GitHub**: (설정 대기 중)
+- **프로덕션**: (배포 예정)
+
+## 사용자 가이드
+
+### 메인 대시보드
+1. **통계 카드**: 총 참가자, 활동 수, 봉사시간, 뱃지 수 한눈에 확인
+2. **네비게이션 탭**: 지도, 활동기록, 뱃지, 프로필 섹션
+
+### 지도 사용법
+1. 지도에서 봉사활동 위치와 기관 위치 확인
+2. 마커 클릭으로 상세 정보 보기
+3. 카테고리 버튼으로 특정 분야 활동만 필터링
+
+### 활동 등록
+1. "활동 추가" 버튼 클릭
+2. 제목, 카테고리, 날짜, 시간, 장소 입력
+3. 등록 후 인증 대기 상태로 저장
+
+### 뱃지 획득 조건
+- **첫 걸음**: 첫 번째 봉사활동 완료
+- **열정가**: 10시간 이상 봉사
+- **헌신자**: 50시간 이상 봉사
+- **환경지킴이**: 환경보호 활동 5회 이상
+- **교육봉사자**: 교육 활동 3회 이상
+- **지역사랑**: 3곳 이상 다른 지역에서 활동
+
+### 인증서 발급
+1. 프로필 탭에서 "봉사활동 인증서 발급" 클릭
+2. PDF 파일 자동 다운로드
+3. 총 봉사시간, 활동 수, 레벨 정보 포함
+
+## 기술 스택
+- **백엔드**: Hono Framework + TypeScript
+- **프론트엔드**: Vanilla JavaScript + TailwindCSS
+- **데이터베이스**: Cloudflare D1 (SQLite)
+- **지도**: Leaflet.js
+- **PDF 생성**: jsPDF
+- **배포**: Cloudflare Pages
+- **개발환경**: Vite + Wrangler
+
+## 배포 상태
+- **플랫폼**: Cloudflare Pages (배포 예정)
+- **상태**: 🔄 로컬 개발 완료, 프로덕션 배포 대기
+- **기술 스택**: Hono + D1 Database + Leaflet.js + TailwindCSS
+- **마지막 업데이트**: 2025-08-29
+
+## 미구현 기능 및 개선 계획
+
+### 🔄 향후 구현 예정
+1. **사용자 인증 시스템**
+   - 회원가입/로그인
+   - JWT 토큰 기반 인증
+   - 사용자별 데이터 분리
+
+2. **고급 지도 기능**
+   - 클러스터링
+   - 히트맵 표시
+   - 경로 추적
+
+3. **알림 시스템**
+   - 뱃지 획득 알림
+   - 활동 인증 완료 알림
+
+4. **소셜 기능**
+   - 활동 공유
+   - 팀 활동 지원
+   - 리더보드
+
+5. **관리자 패널**
+   - 활동 인증 관리
+   - 기관 승인 시스템
+   - 통계 분석
+
+## 권장 다음 단계
+1. ✅ GitHub 저장소 연동
+2. ✅ Cloudflare Pages 프로덕션 배포
+3. 🔄 사용자 인증 시스템 구현
+4. 🔄 모바일 반응형 최적화
+5. 🔄 성능 최적화 및 캐싱
